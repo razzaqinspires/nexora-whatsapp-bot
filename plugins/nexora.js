@@ -1,12 +1,9 @@
-import { createContent } from '../services/ai.js';
-
+import { buildNexoraContent } from '../services/content.js';
 export default {
-  name: 'nexora',
+  name: 'nexora', aliases: ['nx'],
   async execute({ m, rawArgs }) {
-    const q = rawArgs.trim();
-    if (!q) return m.reply('Contoh: /nexora ESP32 untuk pemula');
-    const original = process.env.AI_BASE_URL;
-    const content = await createContent();
-    await m.reply(`NEXORA QUERY: ${q}\n\nID: ${content.id}\nTopik: ${content.topic}\nPilar: ${content.pillar}\n\n${(content.slides || []).map((s, i) => `${i + 1}. ${s.title}\n${s.body}`).join('\n\n')}\n\nCAPTION:\n${content.caption}`);
+    const query = rawArgs.trim() || 'beri satu ide konten teknologi masa depan';
+    const content = await buildNexoraContent({ slot: query, seed: query.length + Date.now() });
+    await m.reply(`*${content.title}*\n\n${content.hook}\n\n${content.caption}\n\n${content.hashtags.join(' ')}\n\nLiterasi: ${content.literacyId}`);
   }
 };

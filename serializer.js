@@ -1,41 +1,34 @@
-/**
- * Normalizes a Baileys message into a small framework-independent shape.
- */
 export function serializeMessage(sock, msg) {
   const key = msg?.key ?? {};
   const remoteJid = key.remoteJid || '';
-  const participant = key.participant || key.remoteJid || '';
-  const pushName = msg?.pushName || '';
+  const sender = key.participant || key.remoteJid || '';
   const text = extractText(msg);
-  const commandText = text.trim();
-
+  const reply = async (content, options = {}) => sock.sendMessage(remoteJid, content, { quoted: msg, ...options });
   return {
     raw: msg,
     id: key.id || '',
     chat: remoteJid,
-    sender: participant,
-    pushName,
+    sender,
+    pushName: msg?.pushName || '',
     text,
-    commandText,
     isGroup: remoteJid.endsWith('@g.us'),
     isFromMe: Boolean(key.fromMe),
-    reply: async (content, options = {}) => sock.sendMessage(remoteJid, content, { quoted: msg, ...options }),
+    reply,
     send: async (content, options = {}) => sock.sendMessage(remoteJid, content, options),
+    react: async (emoji) => sock.sendMessage(remoteJid, { react: { text: emoji, key } }),
+    delete: async () => sock.sendMessage(remoteJid, { delete: key }),
   };
 }
 
 function extractText(msg) {
   const m = msg?.message;
   if (!m) return '';
-  return (
-    m.conversation ||
+  return m.conversation ||
     m.extendedTextMessage?.text ||
     m.imageMessage?.caption ||
     m.videoMessage?.caption ||
     m.documentMessage?.caption ||
     m.buttonsResponseMessage?.selectedButtonId ||
     m.listResponseMessage?.singleSelectReply?.selectedRowId ||
-    m.templateButtonReplyMessage?.selectedId ||
-    ''
-  );
+    m.templateButtonReplyMessage?.selectedId || '';
 }

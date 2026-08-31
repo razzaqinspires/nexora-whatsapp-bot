@@ -1,29 +1,32 @@
 import fs from 'node:fs/promises';
-import fsSync from 'node:fs';
-import path from 'node:path';
 import { IgApiClient } from 'instagram-private-api';
 import { config } from '../lib/config.js';
 
 let ig = null;
 let loggedIn = false;
+let loginPromise = null;
 
 async function ensureClient() {
   if (loggedIn && ig) return ig;
-  if (!config.instagram.username || !config.instagram.password) throw new Error('Instagram belum dikonfigurasi: isi IG_USERNAME dan IG_PASSWORD di .env');
-  ig = new IgApiClient();
-  ig.state.generateDevice(config.instagram.username);
-  await fs.mkdir(path.dirname(config.instagram.sessionFile), { recursive: true });
-  try {
-    await ig.state.deserialize(JSON.parse(await fs.readFile(config.instagram.sessionFile, 'utf8')));
-    await ig.account.currentUser();
-  } catch {
-    await ig.simulate.preLoginFlow();
-    await ig.account.login(config.instagram.username, config.instagram.password);
-    process.nextTick(() => ig?.simulate?.postLoginFlow?.());
-    await fs.writeFile(config.instagram.sessionFile, JSON.stringify(await ig.state.serialize()));
-  }
-  loggedIn = true;
-  return ig;
+  if (loginPromise) return loginPromise;
+  loginPromise = (async () => {
+    if (!config.instagram.username || !config.instagram.password) throw new Error('Instagram belum dikonfigurasi di .env');
+    const client = new IgApiClient();
+    client.state.generateDevice(config.instagram.username);
+    try {
+      await client.state.deserialize(JSON.parse(await fs.readFile(config.instagram.sessionFile, 'utf8')));
+      await client.account.currentUser();
+    } catch {
+      await client.simulate.preLoginFlow();
+      await client.account.login(config.instagram.username, config.instagram.password);
+      await client.simulate.postLoginFlow();
+      await fs.writeFile(config.instagram.sessionFile, JSON.stringify(await client.state.serialize()));
+    }
+    ig = client;
+    loggedIn = true;
+    return ig;
+  })().finally(() => { loginPromise = null; });
+  return loginPromise;
 }
 
 export async function instagramStatus() {
@@ -40,10 +43,6 @@ export async function uploadPhoto(mediaPaths, caption) {
     const result = await client.publish.photo({ file: await fs.readFile(files[0]), caption });
     return { dryRun: false, type: 'photo', mediaId: result?.media?.pk || result?.media?.id || null };
   }
-  const result = await client.publish.album({
-    items: files.map(file => ({ file: fsSync.readFileSync(file) })),
-    caption
-  });
+  const result = await client.publish.album({ items: await Promise.all(files.map(async file => ({ file: await fs.readFile(file) }))), caption });
   return { dryRun: false, type: 'carousel', mediaId: result?.media?.pk || result?.media?.id || null };
 }
-

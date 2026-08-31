@@ -1,57 +1,26 @@
-import { uid, today } from '../lib/utils.js';
+import { askAI } from './ai.js';
 
-const pillars = [
-  'AI & produktivitas', 'Arduino & ESP32', 'Raspberry Pi & embedded',
-  'IoT praktis', 'Robotika', 'Elektronik dasar', 'Teknologi masa depan'
-];
-const angles = ['edukasi singkat', 'myth vs fact', 'tutorial mini', 'tips praktis', 'kesalahan pemula', 'roadmap belajar'];
+const pillars = ['AI', 'Robotics', 'Arduino', 'ESP32', 'Raspberry Pi', 'IoT', 'Embedded Systems', 'Future Tech'];
 
-export function buildLocalContent() {
-  const pillar = pillars[Math.floor(Math.random() * pillars.length)];
-  const angle = angles[Math.floor(Math.random() * angles.length)];
-  const id = uid('NX');
-  const topic = `${pillar}: ${angle}`;
-  return {
-    id,
-    date: today(),
-    format: 'carousel',
-    pillar,
-    angle,
-    topic,
-    slides: [
-      { title: 'NEXORA', body: topic, type: 'hook' },
-      { title: 'Kenapa ini penting?', body: `Pahami konsep ${pillar.toLowerCase()} tanpa istilah yang bertele-tele.`, type: 'education' },
-      { title: '3 poin utama', body: 'Mulai dari konsep dasar → praktik kecil → evaluasi hasil.', type: 'education' },
-      { title: 'Langkah pertama', body: 'Pilih satu proyek mini yang bisa selesai hari ini dan dokumentasikan hasilnya.', type: 'action' },
-      { title: 'Simpan & ikuti', body: 'Simpan postingan ini untuk referensi belajar teknologi berikutnya.', type: 'cta' }
-    ],
-    caption: `${topic}.\n\nBelajar teknologi paling efektif bukan dengan menunggu siap, tetapi dengan membangun proyek kecil secara konsisten.\n\n#NEXORA #AI #Robotika #IoT #Teknologi`,
-    status: 'draft'
-  };
-}
-
-export async function generateContent(ai) {
-  if (!ai?.enabled) return buildLocalContent();
-  try {
-    const response = await fetch(`${ai.baseUrl.replace(/\/$/, '')}/chat/completions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ai.apiKey}` },
-      body: JSON.stringify({
-        model: ai.model,
-        temperature: 0.8,
-        messages: [
-          { role: 'system', content: 'Kamu adalah content strategist NEXORA Indonesia. Buat konten edukasi teknologi yang akurat, praktis, singkat, tidak clickbait berlebihan.' },
-          { role: 'user', content: 'Buat satu ide carousel 5 slide untuk Instagram NEXORA, lengkap dengan hook, isi, CTA, caption, dan maksimal 5 hashtag. Kembalikan JSON valid: {topic, pillar, slides:[{title,body}], caption}.' }
-        ]
-      })
-    });
-    if (!response.ok) throw new Error(`AI HTTP ${response.status}`);
-    const data = await response.json();
-    const text = data.choices?.[0]?.message?.content || '';
-    const clean = text.replace(/^```json\s*|```$/g, '').trim();
-    const parsed = JSON.parse(clean);
-    return { id: uid('NX'), date: today(), format: 'carousel', ...parsed, status: 'draft' };
-  } catch (error) {
-    return { ...buildLocalContent(), aiFallback: true, aiError: error.message };
+export async function buildNexoraContent({ slot = 'manual', seed = Date.now() } = {}) {
+  const pillar = pillars[seed % pillars.length];
+  const ai = await askAI(`Buat konten Instagram NEXORA berbahasa Indonesia. Pilar: ${pillar}. Slot: ${slot}. Berikan JSON valid dengan field: title, hook, caption, slides (array 1-5, setiap item object {headline,body}), hashtags (maks 5), literacyId. Gaya edukatif, singkat, faktual, jangan mengarang spesifikasi.`);
+  if (ai) {
+    try { return JSON.parse(ai.replace(/```json|```/g, '').trim()); } catch { /* fallback */ }
   }
+  const literacyId = `NX-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${String(seed).slice(-4)}`;
+  return {
+    literacyId, pillar,
+    title: `${pillar}: konsep yang perlu kamu pahami`,
+    hook: `Jangan cuma pakai ${pillar}. Pahami cara kerjanya.`,
+    caption: `Literasi NEXORA ${literacyId}\n\nHari ini kita membahas dasar ${pillar}. Simpan postingan ini untuk dipelajari lagi.`,
+    slides: [
+      { headline: 'NEXORA LITERASI', body: `${pillar}` },
+      { headline: 'Apa itu?', body: `Pahami konsep dasar ${pillar} sebelum masuk ke proyek yang lebih kompleks.` },
+      { headline: 'Kenapa penting?', body: 'Fondasi yang kuat membuat eksperimen dan pengembangan produk lebih terarah.' },
+      { headline: 'Mulai dari mana?', body: 'Pelajari konsep, coba proyek kecil, ukur hasil, lalu iterasi.' },
+      { headline: 'NEXORA', body: 'Teknologi untuk dipelajari, dibangun, dan dikembangkan.' }
+    ],
+    hashtags: ['#NEXORA', '#AI', '#Robotika', '#IoT', '#Teknologi']
+  };
 }
