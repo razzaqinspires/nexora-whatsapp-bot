@@ -1,0 +1,23 @@
+{
+  "name": "nexora-whatsapp-bot",
+  "version": "2.0.0",
+  "description": "NEXORA WhatsApp bot v2: ESM plugin commands, serializer, scheduler, content engine, optional Instagram private API adapter.",
+  "type": "module",
+  "main": "src.js",
+  "scripts": {
+    "start": "node src.js",
+    "dev": "node --watch src.js",
+    "lint": "node --check src.js && node --check serializer.js && for f in plugins/*.js lib/*.js services/*.js; do node --check \"$f\"; done"
+  },
+  "engines": { "node": ">=20.0.0" },
+  "dependencies": {
+    "@hapi/boom": "^10.0.1",
+    "@whiskeysockets/baileys": "7.0.0-rc14",
+    "dotenv": "^16.6.1",
+    "instagram-private-api": "1.46.1",
+    "node-cron": "^4.2.1",
+    "pino": "^9.9.0",
+    "qrcode-terminal": "^0.12.0",
+    "sharp": "^0.34.3"
+  }
+}
