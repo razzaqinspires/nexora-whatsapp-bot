@@ -1,13 +1,3 @@
 import { config } from '../lib/config.js';
-
-export async function askAI(prompt) {
-  if (!config.ai.baseUrl || !config.ai.apiKey) return null;
-  const response = await fetch(config.ai.baseUrl, {
-    method: 'POST',
-    headers: { authorization: `Bearer ${config.ai.apiKey}`, 'content-type': 'application/json' },
-    body: JSON.stringify({ model: config.ai.model, messages: [{ role: 'user', content: prompt }] })
-  });
-  if (!response.ok) throw new Error(`AI provider HTTP ${response.status}`);
-  const data = await response.json();
-  return data?.choices?.[0]?.message?.content || null;
-}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+export async function askAI(prompt){if(!config.ai.baseUrl||!config.ai.apiKey)return null;for(let attempt=0;attempt<=config.ai.retries;attempt++){const c=new AbortController();const t=setTimeout(()=>c.abort(),config.ai.timeoutMs);try{const r=await fetch(config.ai.baseUrl,{method:'POST',headers:{authorization:`Bearer ${config.ai.apiKey}`,'content-type':'application/json'},body:JSON.stringify({model:config.ai.model,messages:[{role:'user',content:prompt}],temperature:config.ai.temperature}),signal:c.signal});if(r.ok){const d=await r.json();return d?.choices?.[0]?.message?.content||d?.output_text||null;}if(![408,429,500,502,503,504].includes(r.status))return null;}catch(e){if(attempt===config.ai.retries)console.warn('[AI]',e?.message||e);}finally{clearTimeout(t);}await sleep(500*(attempt+1));}return null;}

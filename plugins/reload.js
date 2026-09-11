@@ -1,1 +1,1 @@
-export default { name: 'reload', ownerOnly: true, async execute({ m, reloadPlugins }) { const count = await reloadPlugins(); await m.reply(`Plugin berhasil di-reload. ${count} plugin aktif.`); } };
+export default { name:'reload', aliases:['reloadplugins'], ownerOnly:true, usage:'reload', help:'Muat ulang semua plugin', async execute({m,reloadPlugins}) { const count=await reloadPlugins(); await m.reply({text:`Plugin berhasil di-reload. ${count} plugin aktif.`}); } };

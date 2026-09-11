@@ -1,0 +1,2 @@
+import { getState, setMaintenance } from '../lib/state.js';
+export default { name:'maintenance', ownerOnly:true, usage:'maintenance on|off|status', help:'Aktif/nonaktif mode maintenance', async execute({m,args}) { const a=(args[0]||'status').toLowerCase(); if(a==='status') return m.reply({text:`Maintenance: *${getState().maintenance?'ON':'OFF'}*`}); if(!['on','off'].includes(a)) return m.reply({text:'Gunakan /maintenance on|off|status'}); await setMaintenance(a==='on'); return m.reply({text:`Maintenance *${a.toUpperCase()}*.`}); } };

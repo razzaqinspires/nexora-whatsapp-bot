@@ -1,25 +1,5 @@
 import { getState, setAutoUpload } from '../lib/state.js';
 import { config } from '../lib/config.js';
 import { instagramStatus, loginInstagram } from '../services/instagram.js';
-import { runScheduledPost } from '../services/scheduler.js';
-
-export default {
-  name: 'autoupload', aliases: ['auto-upload'], ownerOnly: true,
-  async execute({ m, args }) {
-    if (args[0] !== '--ig') return m.reply('Gunakan: /autoupload --ig on|off|now|schedule|slots|login');
-    const action = (args[1] || '').toLowerCase();
-    if (action === 'on') { await setAutoUpload(true); return m.reply('AutoUpload Instagram: ON. Scheduler akan mengikuti slot.'); }
-    if (action === 'off') { await setAutoUpload(false); return m.reply('AutoUpload Instagram: OFF.'); }
-    if (action === 'slots' || action === 'schedule') return m.reply(`Timezone: ${config.timezone}\nSlot: ${config.slots.join(', ')}\nStatus: ${getState().autoUpload ? 'ON' : 'OFF'}`);
-    if (action === 'login') {
-      const status = await loginInstagram();
-      return m.reply(`Instagram login: ${status.loggedIn ? 'OK' : 'FAILED'}\nMode: ${status.mode}\nUser: ${status.username || '-'}`);
-    }
-    if (action === 'now') {
-      const result = await runScheduledPost('manual');
-      return m.reply(result.skipped ? `Tidak dijalankan: ${result.reason}` : `Post selesai. Literacy: ${result.content.literacyId}\nMode: ${result.result.dryRun ? 'DRY RUN' : 'PUBLISHED'}`);
-    }
-    const ig = await instagramStatus();
-    return m.reply(`AutoUpload: ${getState().autoUpload ? 'ON' : 'OFF'}\nInstagram: ${ig.username || '-'} / ${ig.mode}`);
-  }
-};
+import { runScheduledPost, schedulerStatus } from '../services/scheduler.js';
+export default { name:'autoupload', aliases:['auto-upload'], ownerOnly:true, usage:'autoupload --ig on|off|now|schedule|slots|login|status', help:'Kontrol automation Instagram', async execute({m,args}) { if(args[0]!=='--ig') return m.reply({text:'Gunakan: /autoupload --ig on|off|now|schedule|slots|login|status'}); const a=(args[1]||'status').toLowerCase(); if(a==='on'){await setAutoUpload(true);return m.reply({text:'AutoUpload Instagram: *ON*.'});} if(a==='off'){await setAutoUpload(false);return m.reply({text:'AutoUpload Instagram: *OFF*.'});} if(a==='slots'||a==='schedule'){const q=schedulerStatus();return m.reply({text:`Timezone: ${config.timezone}\nSlot: ${config.automation.slots.join(', ')}\nQueue: ${q.queueSize}`});} if(a==='login'){const s=await loginInstagram();return m.reply({text:`Instagram login: ${s.loggedIn?'OK':'FAILED'}\nUser: ${s.username||'-'}`});} if(a==='now'){const r=await runScheduledPost('manual');return m.reply({text:r.skipped?`Tidak dijalankan: ${r.reason}`:`Post selesai. Literacy: ${r.content.literacyId}\n${r.result.dryRun?'DRY RUN':'PUBLISHED'}`});} const ig=await instagramStatus(); return m.reply({text:`AutoUpload: ${getState().autoUpload?'ON':'OFF'}\nInstagram: ${ig.username||'-'} / ${ig.mode}`}); } };

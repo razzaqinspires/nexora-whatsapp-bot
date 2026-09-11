@@ -1,13 +1,14 @@
 {
   "name": "nexora-whatsapp-bot",
-  "version": "3.0.0",
-  "description": "NEXORA WhatsApp Bot v3 - ESM plugin architecture, secure auth modes, scheduler, automation and Instagram private adapter.",
+  "version": "7.0.0",
+  "description": "NEXORA WhatsApp Bot v7 - modular, LID-aware, role-aware, premium-ready automation bot",
   "type": "module",
   "main": "src.js",
   "scripts": {
     "start": "node src.js",
     "dev": "node --watch src.js",
-    "check": "node --check src.js && node --check serializer.js && for f in plugins/*.js lib/*.js services/*.js; do node --check \"$f\"; done"
+    "check": "node --check src.js && node --check serializer.js && for f in plugins/*.js lib/*.js services/*.js; do node --check \"$f\"; done",
+    "test:core": "node --test test/core.test.mjs"
   },
   "engines": { "node": ">=20.0.0" },
   "dependencies": {
