@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module';
 import {
   areJidsSameUser,
   downloadMediaMessage,
@@ -11,6 +12,11 @@ import {
 } from '@whiskeysockets/baileys';
 import { isOwner, sameUser } from './lib/security.js';
 import { getState } from './lib/state.js';
+import { isPremium as isPremiumUser } from './lib/access.js';
+
+const require = createRequire(import.meta.url);
+let compat = null;
+try { compat = require('./serializer-compat.cjs'); } catch (error) { console.warn('[SERIALIZER] compatibility layer unavailable:', error.message); }
 
 /**
  * V7 message serializer.
@@ -29,6 +35,7 @@ export async function serializeMessage(sock, msg, config = {}, bot = {}) {
   const botJids = getBotJids(sock, bot);
   const isBot = isFromMe || identity.all.some(jid => botJids.some(botJid => sameUser(jid, botJid)));
   const groupInfo = group ? await buildGroupInfo(sock, remoteJid, sender, botJids) : null;
+  const validation = validateMessageShape(msg, key, remoteJid, identity, groupInfo);
   const role = resolveRole(identity.all, sender, config, groupInfo);
   const normalizeContent = content => {
     if (content == null) return { text: '' };
@@ -44,19 +51,24 @@ export async function serializeMessage(sock, msg, config = {}, bot = {}) {
   const download = async (target = msg, options = {}) => downloadMediaMessage(target, 'buffer', options, sock);
 
   const text = extractText(msg);
+  const body = text;
+  const selectedButtonId = extractInteractiveId(msg);
   const media = detectMedia(msg);
-  const premium = getState().premiumUsers.some(jid => identity.all.some(candidate => sameUser(candidate, jid)));
+  const premium = isPremiumUser(identity.all, config);
   const owner = isOwner(identity.all, config);
   const admin = owner || Boolean(groupInfo?.isSenderAdmin) || isConfiguredAdmin(identity.all, config);
 
   return {
     raw: msg,
+    validation,
     key,
     id: key.id || '',
     chat: remoteJid,
     sender,
     pushName: msg?.pushName || '',
     text,
+    body,
+    selectedButtonId,
     isGroup: group,
     isPrivate: !group,
     isNotGroup: !group,
@@ -89,7 +101,21 @@ export async function serializeMessage(sock, msg, config = {}, bot = {}) {
     react,
     delete: remove,
     download,
-    getQuotedMessage: () => buildQuotedMessage(msg)
+    getQuotedMessage: () => buildQuotedMessage(msg),
+    // V15 compatibility surface inspired by the supplied legacy serializer.
+    freply: compat?.freply || null,
+    createFakeReply: (type, options = {}) => compat?.createFakeReply?.(type, options) || null,
+    sendInteractive: (data = {}) => typeof sock.sendInteractive === 'function' ? sock.sendInteractive(remoteJid, data, msg) : Promise.reject(new Error('Interactive helper not attached.')),
+    sendRichMessage: (submessages, options = {}) => sock.sendRichMessage?.(remoteJid, submessages, { ...msg, ...buildQuotedMessage(msg) }, options),
+    sendList: (title, items, options = {}) => sock.sendList?.(remoteJid, title, items, msg, options),
+    freply: compat?.freply || null,
+    fReply: (type='trolley', options={}) => compat?.createFakeReply?.(type, options) || null,
+    fake: compat?.freply || null,
+    airich: () => sock.airich?.(),
+    rich: () => sock.richMessage?.() || sock.airich?.(),
+    buttonBuilder: () => sock.buttonBuilder?.(),
+    buttonV2Builder: () => sock.buttonV2Builder?.(),
+    carouselBuilder: () => sock.carouselBuilder?.()
   };
 }
 
@@ -193,12 +219,53 @@ function detectMedia(msg) {
 export function extractText(msg) {
   const m = normalizeMessageContent(msg?.message);
   if (!m) return '';
-  return m.conversation ||
-    m.extendedTextMessage?.text ||
-    m.imageMessage?.caption ||
-    m.videoMessage?.caption ||
-    m.documentMessage?.caption ||
-    m.buttonsResponseMessage?.selectedButtonId ||
-    m.listResponseMessage?.singleSelectReply?.selectedRowId ||
-    m.templateButtonReplyMessage?.selectedId || '';
+  if (m.conversation) return m.conversation;
+  if (m.extendedTextMessage?.text) return m.extendedTextMessage.text;
+  if (m.imageMessage?.caption) return m.imageMessage.caption;
+  if (m.videoMessage?.caption) return m.videoMessage.caption;
+  if (m.documentMessage?.caption) return m.documentMessage.caption;
+  if (m.buttonsResponseMessage?.selectedButtonId) return m.buttonsResponseMessage.selectedButtonId;
+  if (m.listResponseMessage?.singleSelectReply?.selectedRowId) return m.listResponseMessage.singleSelectReply.selectedRowId;
+  if (m.templateButtonReplyMessage?.selectedId) return m.templateButtonReplyMessage.selectedId;
+  const native=m.interactiveResponseMessage?.nativeFlowResponseMessage;
+  if (native?.buttonReply?.id) return native.buttonReply.id;
+  if (m.nativeFlowResponseMessage?.buttonReply?.id) return m.nativeFlowResponseMessage.buttonReply.id;
+  if (m.nativeFlowResponseMessage?.paramsJson) { try { const p=JSON.parse(m.nativeFlowResponseMessage.paramsJson); return p.id || p.row_id || p.rowId || p.selected_id || p.selectedId || p.command || ''; } catch {} }
+  if (native?.paramsJson) {
+    try { const p=JSON.parse(native.paramsJson); return p.id || p.button_id || p.selectedId || p.rowId || p.command || p.params || ''; } catch { return String(native.paramsJson); }
+  }
+  return '';
+}
+
+
+export function attachSerializerRuntime(sock) {
+  if (!sock) return sock;
+  try { compat?.extendSocket?.(sock); } catch (error) { console.warn('[SERIALIZER] compat socket extension failed:', error.message); }
+  return sock;
+}
+
+function extractInteractiveId(msg) {
+  const m = normalizeMessageContent(msg?.message) || {};
+  if (m.buttonsResponseMessage?.selectedButtonId) return m.buttonsResponseMessage.selectedButtonId;
+  if (m.listResponseMessage?.singleSelectReply?.selectedRowId) return m.listResponseMessage.singleSelectReply.selectedRowId;
+  if (m.templateButtonReplyMessage?.selectedId) return m.templateButtonReplyMessage.selectedId;
+  const n = m.interactiveResponseMessage?.nativeFlowResponseMessage;
+  if (n?.buttonReply?.id) return n.buttonReply.id;
+  if (n?.paramsJson) {
+    try { const p=JSON.parse(n.paramsJson); return p.id || p.row_id || p.rowId || p.selected_id || p.selectedId || p.command || ''; } catch {}
+  }
+  return '';
+}
+
+export function validateMessageShape(msg = {}, key = {}, remoteJid = '', identity = { all: [] }, groupInfo = null) {
+  const errors = [];
+  const warnings = [];
+  if (!key.id) warnings.push('message key.id kosong');
+  if (!remoteJid) errors.push('remoteJid kosong');
+  if (!identity.all?.length) errors.push('identity tidak memiliki JID kandidat');
+  if (isJidGroup(remoteJid) && !groupInfo) warnings.push('metadata grup tidak tersedia');
+  if (key.remoteJid && isLidUser(key.remoteJid) && !key.remoteJidPn && !key.remoteJidAlt) warnings.push('remoteJid adalah LID tanpa PN/Alt; jangan infer nomor dari LID');
+  const type = getContentType(normalizeMessageContent(msg?.message)) || '';
+  if (type && !['conversation','extendedTextMessage','imageMessage','videoMessage','documentMessage','audioMessage','stickerMessage','buttonsResponseMessage','listResponseMessage','templateButtonReplyMessage','interactiveResponseMessage','pollUpdateMessage','nativeFlowResponseMessage','lottieStickerMessage','viewOnceMessage','ephemeralMessage'].includes(type)) warnings.push(`message type belum dikenal serializer: ${type}`);
+  return { ok: errors.length === 0, errors, warnings, messageType: type, identityCandidates: identity.all.length, hasGroupMetadata: Boolean(groupInfo) };
 }

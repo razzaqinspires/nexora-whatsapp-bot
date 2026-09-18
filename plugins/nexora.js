@@ -1,9 +1,7 @@
-import { buildNexoraContent } from '../services/content.js';
-export default {
-  name: 'nexora', aliases: ['nx'],
-  async execute({ m, rawArgs }) {
-    const query = rawArgs.trim() || 'beri satu ide konten teknologi masa depan';
-    const content = await buildNexoraContent({ slot: query, seed: query.length + Date.now() });
-    await m.reply({ text: `*${content.title}*\n\n${content.hook}\n\n${content.caption}\n\n${content.hashtags.join(' ')}\n\nLiterasi: ${content.literacyId}` });
-  }
-};
+import { agentRespond, registerAgentTool } from '../lib/agent.js';
+import { getUserProfile, inventorySummary } from '../lib/gamification.js';
+import { mapState } from '../lib/game.js';
+import { localAssistant } from '../lib/ai-local.js';
+let registered=false;
+function ensureTools(){if(registered)return;registered=true;registerAgentTool('profile',{description:'Ambil profile'},async(_,c)=>getUserProfile(c.m));registerAgentTool('inventory',{description:'Ambil inventory'},async(_,c)=>inventorySummary(c.m));registerAgentTool('map',{description:'Ambil posisi map'},async(_,c)=>mapState(c.m));registerAgentTool('menu',{description:'Daftar command'},async(_,c)=>c.router.help(c.prefix||'.'));}
+export default {name:'nexora',version:'15.0.3',aliases:['nx'],usage:'nexora <request>',category:'ai',help:'NEXORA command center / Agent',async execute(ctx){ensureTools();const q=ctx.rawArgs.trim()||'tampilkan status saya';const r=await agentRespond(q,{m:ctx.m,router:ctx.router,prefix:ctx.prefix});return ctx.m.reply({text:r.ok?`*NEXORA AGENT v15.0.3*\nProvider: ${r.provider} • ${r.model}\n\n${r.text}`:`*NEXORA AGENT v15.0.3*\nStatus: ${r.code}\nProvider: ${r.provider||'-'}\nMode: LOCAL FALLBACK\n\n${localAssistant(q)}`});}};

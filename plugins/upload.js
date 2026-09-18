@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { uploadInstagramMedia } from '../services/instagram.js';
 
-export default {
+export default { version:'15.0.3', 
   name: 'upload', aliases: ['igupload', 'ig-upload'], ownerOnly: true,
   usage: 'upload [caption] (reply/kirim gambar)',
   help: 'Upload manual media WhatsApp ke Instagram',

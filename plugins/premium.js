@@ -1,8 +1,8 @@
-import { getState, setPremiumUsers } from '../lib/state.js';
+import { getState, setPremiumUsers, setPremiumUntil } from '../lib/state.js';
 import { isOwner, normalizeJid } from '../lib/security.js';
 
-export default {
-  name: 'premium', aliases: ['prem'], usage: 'premium status|add|del|list <jid>', help: 'Status premium atau kelola premium (owner)',
+export default { version:'15.0.3', 
+  name: 'premium', aliases: ['prem'], usage: 'premium status|add|del|list <jid> [days]', help: 'Status premium atau kelola premium (owner)',
   async execute({ m, args, config }) {
     const action = (args[0] || 'status').toLowerCase();
     const self = m.identity?.pn || m.sender;
@@ -20,8 +20,12 @@ export default {
     if (!jid.includes('@')) return m.reply({ text: 'Contoh: /premium add 6281234567890' });
     if (isOwner(jid, config)) return m.reply({ text: 'Owner otomatis memiliki akses premium.' });
 
-    if (action === 'add') users.add(jid);
-    else if (action === 'del') users.delete(jid);
+    if (action === 'add') {
+      users.add(jid);
+      const days = Math.max(1, Number(args[2] || 30));
+      await setPremiumUntil(jid, new Date(Date.now() + days * 86400000).toISOString());
+    }
+    else if (action === 'del') { users.delete(jid); await setPremiumUntil(jid, null); }
     else return m.reply({ text: 'Gunakan /premium status|add|del|list <jid>' });
 
     await setPremiumUsers([...users]);

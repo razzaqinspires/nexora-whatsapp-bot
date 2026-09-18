@@ -1,4 +1,4 @@
-export default {
+export default { version:'15.0.3', 
   name: 'groupinfo', aliases: ['ginfo'], groupOnly: true, usage: 'groupinfo', help: 'Metadata grup dan status admin',
   async execute({ m }) {
     const g = m.group || {};

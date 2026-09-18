@@ -1,0 +1,8 @@
+import { getState, persistGamification } from '../lib/state.js';
+function same(a,b){return String(a||'').split('@')[0]===String(b||'').split('@')[0];}
+export function targetJids(m,args=[]){const out=[];const ctx=m.raw?.message?.extendedTextMessage?.contextInfo||m.raw?.message?.imageMessage?.contextInfo||m.raw?.message?.videoMessage?.contextInfo||{};for(const x of ctx.mentionedJid||[])out.push(x);const q=ctx.participant||ctx.participantAlt;if(q)out.push(q);for(const a of args){if(/^(\+?\d{7,16})$/.test(a)){const n=a.replace(/\D/g,'');out.push(`${n}@s.whatsapp.net`);}else if(/@s\.whatsapp\.net$|@lid$/.test(a))out.push(a);}return [...new Set(out)];}
+export function requireGroup(m){if(!m.isGroup)throw new Error('Command ini hanya untuk group.');if(!m.isGroupAdmin&&!m.isOwner)throw new Error('Hanya admin group yang dapat menggunakan command ini.');if(!m.isBotAdmin&&!m.isOwner)throw new Error('Bot harus menjadi admin group.');}
+export function mentionText(jids){return jids.map(j=>`@${String(j).split('@')[0]}`).join(' ');}
+export async function participantAction(sock,m,args,action){requireGroup(m);const jids=targetJids(m,args);if(!jids.length)throw new Error('Tag/reply/member diperlukan.');return sock.groupParticipantsUpdate(m.chat,jids,action);}
+export async function setGroupToggle(chat,key,value){const s=getState();s.groupSettings ||= {};s.groupSettings[chat] ||= {};s.groupSettings[chat][key]=value;await persistGamification();return value;}
+export function safeTargets(m){const participants=m.group?.participants||[];return participants.filter(p=>{const id=p.id||p.phoneNumber||p.lid;return id && !p.admin && !same(id,m.sender) && !same(id,m.group?.owner) && !same(id,m.group?.ownerPn);});}

@@ -1,4 +1,4 @@
-export default {
+export default { version:'15.0.3', 
   name: 'whoami', aliases: ['me', 'identity'], usage: 'whoami', help: 'Tampilkan identitas dan hak akses pesan',
   async execute({ m }) {
     const lines = [

@@ -1,0 +1,3 @@
+import { battleSnapshot } from '../lib/rpg.js';
+import { renderBattleProofCanvas } from '../services/canvas.js';
+export default {name:'battleproof',version:'15.0.3',aliases:['proof','combatlog'],usage:'battleproof',help:'Bukti visual statistik, damage, buff/debuff battle',async execute({m}){const s=battleSnapshot(m);if(!s.active&& !s.lastEvent)return m.reply({text:'Belum ada data battle.'});const image=await renderBattleProofCanvas(s,s.result||'ongoing');return m.reply({image,caption:`*BATTLE PROOF v15*\n${s.enemy.name}\nTurn ${s.turn}\nDamage ${s.character.totalDamage} • Taken ${s.character.totalTaken}\nBuff ${(s.buffs||[]).map(x=>x.name).join(', ')||'-'}\nDebuff ${(s.debuffs||[]).map(x=>x.name).join(', ')||'-'}`});}};

@@ -1,0 +1,2 @@
+import { useItem } from '../lib/gamification.js';
+export default { name:'use', version:'15.0.3', usage:'use <nomor|id>', help:'Gunakan potion/key atau aktifkan buff', async execute({m,args}){try{const x=await useItem(m,args[0]);return m.reply({text:`*NEXORA ITEM*\n${x.name} digunakan.\nEffect: ${x.effect || '-'}\n${x.profile ? `Level sekarang: ${x.profile.level} • XP ${x.profile.xp}` : ''}`});}catch(e){return m.reply({text:`Use gagal: ${e.message}`});}}};

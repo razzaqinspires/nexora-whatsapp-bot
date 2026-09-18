@@ -1,17 +1,16 @@
 import { getAccessMode } from '../lib/access.js';
+import { getUserProfile, levelProgress } from '../lib/gamification.js';
 import { getState } from '../lib/state.js';
-
-export default {
-  name: 'menu', aliases: ['help'], usage: 'menu [help]', help: 'Daftar command',
-  async execute({ m, prefix, router, config }) {
-    const lines = [
-      '*NEXORA BOT v7*', '', '*COMMANDS*', ...router.help(prefix), '',
-      `Access: ${getAccessMode(config).toUpperCase()}`,
-      `Role: ${m.role.toUpperCase()}`,
-      `Premium: ${m.isPremium ? 'ON' : 'OFF'}`,
-      `Maintenance: ${getState().maintenance ? 'ON' : 'OFF'}`,
-      `Disabled plugins: ${getState().disabledPlugins.length}`
-    ];
-    await m.reply({ text: lines.join('\n') });
-  }
-};
+import { renderMenuCanvas } from '../services/canvas.js';
+import { sendInteractive, button } from '../services/buttons.js';
+import { getMenuConfig, filterPlugins, formatCommand, getSubcategory, MENU_CATEGORIES } from '../services/menu.js';
+export default {name:'menu',version:'15.0.3',aliases:['help'],usage:'menu [category] [--options]',category:'core',help:'Command center modular dengan kategori, subkategori RPG, filter dan renderer',async execute({m,args,prefix,router,config}){
+ let cfg=getMenuConfig();const opts=args.map(String);const category=(args.find(x=>!x.startsWith('--'))||cfg.category||'all').toLowerCase();const ignored=[];for(let i=0;i<opts.length;i++){if(opts[i]==='--ignore'&&opts[i+1])ignored.push(...opts[i+1].split(',').map(x=>x.toLowerCase()));}if(ignored.includes('desc')||ignored.includes('description'))cfg.showDescription=false;if(ignored.includes('args'))cfg.showArgs=false;if(ignored.includes('number'))cfg.numbered=false;if(opts.includes('--number'))cfg.numbered=true;if(opts.includes('--az')||opts.includes('--sort=az'))cfg.sort='az';const typeOpt=opts.find(x=>x.startsWith('--type='));if(typeOpt)cfg.type=typeOpt.split('=')[1];
+ const plugins=filterPlugins(router.list(),category,cfg);let n=1;const groups=[];
+ if(category==='game'){
+   const subs=['combat','character','world','progression','dashboard','other'];for(const sub of subs){const list=plugins.filter(p=>getSubcategory(p)===sub);if(!list.length)continue;groups.push(`*${sub.toUpperCase()}*`,...list.map(p=>formatCommand(p,prefix,cfg,n++)));}
+ } else {const cats=[...new Set(plugins.map(p=>String(p.category||'core').toLowerCase()))];for(const c of cats){const list=plugins.filter(p=>String(p.category||'core').toLowerCase()===c);if(!list.length)continue;groups.push(`*${c.toUpperCase()}*`,...list.map(p=>formatCommand(p,prefix,cfg,n++)));}}
+ const u=getUserProfile(m),prog=levelProgress(u.xp),st=getState();const widgets=[];if(cfg.widgets.user)widgets.push(`Lv.${u.level} • ${prog.progress}% • ${u.xp} XP • ${u.coins} coins`);if(cfg.widgets.premium)widgets.push(`Premium: ${m.isPremium?'ON':'OFF'}`);if(cfg.widgets.status)widgets.push(`Access ${getAccessMode(config).toUpperCase()} • Maintenance ${st.maintenance?'ON':'OFF'}`);if(cfg.widgets.stats)widgets.push(`Commands: ${u.commands||0} • Visible: ${plugins.length}`);if(cfg.widgets.novel)widgets.push(`Chronicle: ${prefix}story`);const caption=[`*NEXORA BOT v15*`,`Prefix: ${st.prefix.mode==='none'?'none':st.prefix.prefixes.join(' ')}`,`Category: ${category}`,'',...groups,'',...widgets].join('\n');const image=await renderMenuCanvas({level:u.level,rank:u.rank,xp:u.xp,coins:u.coins,commands:u.commands,category,commandCount:plugins.length});
+ const catButtons=['core','group','game','download','ai','economy','system','owner','premium'].filter(c=>c!==category).slice(0,3).map(c=>button(`${prefix}menu ${c}`,c.toUpperCase()));const sections=[{title:'Categories',rows:MENU_CATEGORIES.map(c=>({title:c.toUpperCase(),rowId:`${prefix}menu ${c}`,description:c==='game'?'RPG categories: combat, character, world, progression, dashboard':`Buka ${c}`}))}];
+ return sendInteractive(m,{type:cfg.type,image,caption,footer:'NEXORA • Menu v15',buttons:catButtons,sections,cards:[{title:'GAME',id:`${prefix}menu game`,body:'RPG Command Center'}]});
+}};
