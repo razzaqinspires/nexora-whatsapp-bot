@@ -1,6 +1,6 @@
 const enabled = String(process.env.BUTTONS_ENABLED ?? 'true').toLowerCase() !== 'false';
 function cleanButton(button={}){ return {buttonId:String(button.id??'').trim(),buttonText:{displayText:String(button.text??'').trim().slice(0,20)},type:1}; }
-export function buttonPayload({text='',footer='NEXORA v15.0',buttons=[],image,caption}={}){const safe=buttons.map(cleanButton).filter(x=>x.buttonId&&x.buttonText.displayText).slice(0,3);return image?{image,caption:caption??text,footer:String(footer),buttons:safe}:{text,footer:String(footer),buttons:safe};}
+export function buttonPayload({text='',footer='NEXORA v17.0',buttons=[],image,caption}={}){const safe=buttons.map(cleanButton).filter(x=>x.buttonId&&x.buttonText.displayText).slice(0,3);return image?{image,caption:caption??text,footer:String(footer),buttons:safe}:{text,footer:String(footer),buttons:safe};}
 export async function sendButtons(m,data={}){const safe=(data.buttons||[]).map(cleanButton).filter(x=>x.buttonId&&x.buttonText.displayText).slice(0,3);if(!enabled||!safe.length)return m.reply(data.image?{image:data.image,caption:data.caption??data.text}:{text:data.text||''});try{return await m.reply(buttonPayload({...data,buttons:safe}));}catch{return m.reply({text:`${data.text||data.caption||''}\n\nPilihan cepat: ${safe.map(x=>x.buttonId).join(' • ')}`.trim()});}}
 export function button(id,text){return{id,text};}
 export async function sendInteractive(m,{type='buttons',text='',image,caption,footer,buttons=[],sections=[],cards=[]}={}){

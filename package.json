@@ -1,7 +1,7 @@
 {
   "name": "nexora-whatsapp-bot",
-  "version": "15.0.3",
-  "description": "NEXORA WhatsApp Bot v15.0.3 - professional modular AI, game, group and automation framework",
+  "version": "17.0.0",
+  "description": "NEXORA WhatsApp Bot v17.0.0 - professional modular AI, game, group and automation framework",
   "type": "module",
   "main": "src.js",
   "scripts": {

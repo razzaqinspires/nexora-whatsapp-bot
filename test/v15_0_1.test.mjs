@@ -1,0 +1,9 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+test('V16 ping runtime card metadata',()=>{const s=fs.readFileSync(new URL('../plugins/ping.js',import.meta.url),'utf8');for(const x of ['runtimeSnapshot','runtimeUrl','externalAdReply','sourceUrl','SERVER LIVE'])assert.ok(s.includes(x));});
+test('V16 runtime web exposes live endpoints',()=>{const s=fs.readFileSync(new URL('../services/runtime-web.js',import.meta.url),'utf8');for(const x of ['/api/status','/api/ping','NEXORA Runtime','NEXORA_PUBLIC_URL'])assert.ok(s.includes(x));});
+test('V16 downloader auto dependency installer is wired',()=>{const s=fs.readFileSync(new URL('../services/downloader.js',import.meta.url),'utf8');const p=fs.readFileSync(new URL('../services/runtime-deps.js',import.meta.url),'utf8');assert.ok(s.includes('ensureYtDlp'));assert.ok(p.includes('yt-dlp'));assert.ok(p.includes('pip'));});
+test('V16 battle uses visual native list selection',()=>{const s=fs.readFileSync(new URL('../plugins/battle.js',import.meta.url),'utf8');const u=fs.readFileSync(new URL('../services/rpg-ui.js',import.meta.url),'utf8');for(const x of ['renderBattleSelectionCanvas','selectionSections','Pilih Musuh'])assert.ok(s.includes(x));assert.ok(u.includes("name:'single_select'"));});
+test('V16 AI commands retain local fallback',()=>{for(const f of ['plugins/ask.js','plugins/nexora.js']){const s=fs.readFileSync(new URL('../'+f,import.meta.url),'utf8');assert.ok(s.includes('localAssistant'));assert.ok(s.includes('LOCAL FALLBACK'));}});
+test('V16 native flow keeps mixed binary envelope like supplied module',()=>{const s=fs.readFileSync(new URL('../serializer-compat.cjs',import.meta.url),'utf8');assert.ok(s.includes("buildNativeFlowBinaryNodes(nativeButtons, isGroup, 'mixed')"));assert.ok(s.includes("buttonName = 'single_select'"));});

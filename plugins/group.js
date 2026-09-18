@@ -1,6 +1,6 @@
 import { requireGroup, participantAction, targetJids, mentionText, setGroupToggle, safeTargets } from '../services/group.js';
 import { getState } from '../lib/state.js';
-const def=(name,aliases,usage,help,execute,extra={})=>({name,version:'15.0.3',aliases,usage,help,groupOnly:true,groupAdminOnly:true,...extra,execute});
+const def=(name,aliases,usage,help,execute,extra={})=>({name,version:'17.0.0',aliases,usage,help,groupOnly:true,groupAdminOnly:true,...extra,execute});
 export const commands={
  add:def('add',['invite'],'add <nomor>','Tambah member',async({sock,m,args})=>{try{const r=await participantAction(sock,m,args,'add');return m.reply({text:`Add selesai: ${r.map(x=>`${x.jid}=${x.status}`).join(', ')}`});}catch(e){return m.reply({text:e.message});}}),
  kick:def('kick',['remove','del'],'kick <tag/reply/nomor>','Keluarkan member',async({sock,m,args})=>{try{const r=await participantAction(sock,m,args,'remove');return m.reply({text:`Kick selesai: ${r.map(x=>`${x.jid}=${x.status}`).join(', ')}`});}catch(e){return m.reply({text:e.message});}}),

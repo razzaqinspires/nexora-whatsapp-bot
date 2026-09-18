@@ -4,7 +4,7 @@ const builders = {
   list: () => ({ text:'NEXORA list probe', title:'Test', description:'Capability probe', buttonText:'OPEN', sections:[{title:'NEXORA',rows:[{title:'Test row',rowId:'nexora:test:1'}]}] }),
   carousel: () => ({ text:'NEXORA carousel probe', cards:[{title:'Card 1'},{title:'Card 2'}] })
 };
-export default { version:'15.0.3', 
+export default { version:'17.0.0', 
   name:'test', aliases:['tests','diag'], ownerOnly:true, nonDisableable:true,
   usage:'test all|serializer|events|console|buttons|list|carousel',
   help:'Test harness untuk message types, UI payload, serializer dan event monitor',

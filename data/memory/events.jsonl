@@ -76,3 +76,11 @@
 {"id":"3e4ce4c8-c8d6-44f1-973f-46dd8ba83252","ts":"2026-09-18T21:05:56.721Z","type":"command.execute","actor":"6283193905842@s.whatsapp.net","data":{"command":"ping","group":null}}
 {"id":"b161a15e-01af-4df2-ac10-b75380d38b25","ts":"2026-09-18T21:06:29.297Z","type":"command.execute","actor":"6283193905842@s.whatsapp.net","data":{"command":"menu","group":"120363420882298076@g.us"}}
 {"id":"f7f59894-3083-452c-887f-829f5c44911e","ts":"2026-09-18T21:06:34.343Z","type":"command.execute","actor":"6283193905842@s.whatsapp.net","data":{"command":"ping","group":"120363420882298076@g.us"}}
+{"id":"9ca390c3-dc92-4d9d-b5b7-2977b7f37dd0","ts":"2026-09-18T21:18:41.440Z","type":"command.execute","actor":"6283193905842@s.whatsapp.net","data":{"command":"ping","group":"120363420882298076@g.us"}}
+{"id":"55034dcc-3bd6-422c-b5a6-1ebde1fc8559","ts":"2026-09-18T21:18:51.360Z","type":"command.execute","actor":"6283193905842@s.whatsapp.net","data":{"command":"ping","group":"120363420882298076@g.us"}}
+{"id":"29a712a2-61c0-401e-83d7-799fc9939cdd","ts":"2026-09-18T21:18:54.108Z","type":"command.execute","actor":"6283193905842@s.whatsapp.net","data":{"command":"menu","group":"120363420882298076@g.us"}}
+{"id":"8b8ed09c-c8b3-4b0c-875d-264b1f2f1b38","ts":"2026-09-18T21:18:57.138Z","type":"command.execute","actor":"6283193905842@s.whatsapp.net","data":{"command":"status","group":"120363420882298076@g.us"}}
+{"id":"9047c108-c048-4254-a1b4-0c32cf327ba2","ts":"2026-09-18T21:19:00.055Z","type":"command.execute","actor":"6283193905842@s.whatsapp.net","data":{"command":"battle","group":"120363420882298076@g.us"}}
+{"id":"81e836ee-ca8d-4804-83c0-c7c3efa482c4","ts":"2026-09-18T21:19:06.875Z","type":"command.execute","actor":"6283193905842@s.whatsapp.net","data":{"command":"battle","group":"120363420882298076@g.us"}}
+{"id":"adc43780-430c-40aa-b5cc-57183b11f8c7","ts":"2026-09-18T21:19:12.715Z","type":"command.execute","actor":"6283193905842@s.whatsapp.net","data":{"command":"skill","group":"120363420882298076@g.us"}}
+{"id":"9eaed0a6-6740-4fad-a260-f574f57df20f","ts":"2026-09-18T21:19:26.591Z","type":"command.execute","actor":"6283193905842@s.whatsapp.net","data":{"command":"battle","group":"120363420882298076@g.us"}}

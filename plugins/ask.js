@@ -3,7 +3,7 @@ import { getState, persistGamification } from '../lib/state.js';
 import { userKey } from '../lib/gamification.js';
 import { memoryContext, rememberInteraction } from '../lib/ai-memory.js';
 import { localAssistant } from '../lib/ai-local.js';
-export default {name:'ask',version:'15.0.3',aliases:['ai','chat','tanya'],usage:'ask <pesan>',category:'ai',help:'NEXORA AI dengan multi-provider smart fallback',async execute({m,rawArgs}){
+export default {name:'ask',version:'17.0.0',aliases:['ai','chat','tanya'],usage:'ask <pesan>',category:'ai',help:'NEXORA AI dengan multi-provider smart fallback',async execute({m,rawArgs}){
  const prompt=rawArgs.trim();if(!prompt)return m.reply({text:'Contoh: .ask jelaskan IoT dengan bahasa sederhana.'});
  const state=getState(),key=userKey(m);state.aiChats ||= {};const history=Array.isArray(state.aiChats[key])?state.aiChats[key]:[];
  const transcript=history.slice(-10).map(x=>`${x.role==='assistant'?'NEXORA':'USER'}: ${x.content}`).join('\n');

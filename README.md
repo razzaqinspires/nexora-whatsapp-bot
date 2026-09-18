@@ -76,3 +76,27 @@ Never commit API keys or session files. Rotate any key that has been exposed.
 - Native Flow mengikuti serializer kompatibilitas: binary envelope `mixed`; list menggunakan `single_select` button.
 - Ping menggunakan AIRich sebagai jalur utama dan externalAdReply fallback.
 - Runtime telemetry tetap tersedia melalui runtime web.
+
+
+## V16 — Visual RPG Flow + Live Rich UI
+
+- Battle gate now renders a canvas enemy-selection screen with native single-select list.
+- Every combat step follows: canvas HUD → native action → canvas result → next action.
+- Skill Codex is visual and native-list driven; adds Focus, Battle Cry, Meditation, Execution and Thunder.
+- Battle proof, flee, equipment and item actions use the centralized RPG UI layer.
+- Command Center menu uses a dynamic canvas with XP progress, category state and native navigation.
+- `ping` now follows the supplied AIRich pattern: `AIRich` + `addSubmessage` + FOA HTML `addSection` + quoted send, with text/external-preview fallback.
+- Native-flow transport remains compatible with the supplied working serializer: binary envelope `mixed`, actual list action `single_select`.
+- All plugin command versions are `17.0.0`.
+
+### RPG V16 flow
+
+`menu → game → battle → enemy list → battle HUD → skill list → combat result → next action`
+
+The visual canvas is generated as PNG by Sharp; native controls remain WhatsApp interactive messages. Full live WhatsApp rendering still depends on the deployed Baileys/runtime environment.
+
+
+## V17 Arcade
+- `.mario` original NEXORA platform runner using AIRich + native replies.
+- Canvas screen per turn, lives, score, coins, stamina, worlds, enemies, gaps, checkpoints and restart.
+- This is an original game inspired by classic platformers and does not include Nintendo/Mario copyrighted assets or code.

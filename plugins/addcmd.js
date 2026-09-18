@@ -1,7 +1,7 @@
 import { extractReplyPayload } from '../services/message-extractor.js';
 import { installPluginFromSource } from '../installer/plugin-installer.js';
 
-export default { version:'15.0.3', 
+export default { version:'17.0.0', 
   name: 'addcmd',
   aliases: ['addcommand','installcmd'],
   ownerOnly: true,

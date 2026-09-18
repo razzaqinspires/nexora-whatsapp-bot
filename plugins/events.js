@@ -1,4 +1,4 @@
-export default { version:'15.0.3', 
+export default { version:'17.0.0', 
   name:'events', aliases:['event','eventlog'], ownerOnly:true, nonDisableable:true,
   usage:'events [status|clear]', help:'Monitor event Baileys secara ringkas',
   async execute({m,bot,args}) {

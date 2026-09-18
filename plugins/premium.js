@@ -1,7 +1,7 @@
 import { getState, setPremiumUsers, setPremiumUntil } from '../lib/state.js';
 import { isOwner, normalizeJid } from '../lib/security.js';
 
-export default { version:'15.0.3', 
+export default { version:'17.0.0', 
   name: 'premium', aliases: ['prem'], usage: 'premium status|add|del|list <jid> [days]', help: 'Status premium atau kelola premium (owner)',
   async execute({ m, args, config }) {
     const action = (args[0] || 'status').toLowerCase();
